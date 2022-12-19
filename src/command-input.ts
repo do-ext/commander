@@ -1,30 +1,39 @@
 let command = "";
 let input: HTMLElement | null = null;
 
-const commandEntered = async (commandNew: string) => {
+const commandEntered = async (commandNew: string, submit = false) => {
 	command = commandNew;
-	const getTabsFocused = async () =>
+	const getTabsInWindow = async () =>
 		(await chrome.tabs.query({ lastFocusedWindow: true }));
 	if (input) {
 		input.textContent = command;
 	}
-	switch (command) {
-	/*case "t": {
-		chrome.action.setBadgeText({ text: " " });
-		chrome.action.setBadgeBackgroundColor({ color: [ 255, 0, 0, 255 ] });
-		return;
-	} */case "tl": {
-		const tabs = await getTabsFocused();
-		chrome.tabs.update(tabs[(tabs.findIndex(tab => tab.active) + 1) % tabs.length].id as number, { active: true });
-		break;
-	} case "th": {
-		const tabs = await getTabsFocused();
-		chrome.tabs.update(tabs[(tabs.length + tabs.findIndex(tab => tab.active) - 1) % tabs.length].id as number, { active: true });
-		break;
-	} default: {
-		return;
-	}}
-	close();
+	if (command.startsWith("t")) {
+		if ((command.length > 1 && command.endsWith("t")) || submit) {
+			const tab = (await chrome.tabs.query({ highlighted: true, active: false }))[0];
+			chrome.tabs.update(tab.id as number, { active: true });
+			close();
+			return;
+		}
+		const tabs = await getTabsInWindow();
+		const tab = tabs.find(tab => tab.active) as chrome.tabs.Tab;
+		const tabSelected = tabs.find(tab => !tab.active && tab.highlighted) as chrome.tabs.Tab;
+		if (command.startsWith("tl")) {
+			const shift = (command.match(/l/g) as RegExpMatchArray).length;
+			chrome.tabs.update(tabs[(tab.index + shift) % tabs.length].id as number, {
+				highlighted: true,
+				active: false,
+			});
+			chrome.tabs.update(tabSelected.id as number, { highlighted: false });
+		} else if (command.startsWith("th")) {
+			const shift = (command.match(/h/g) as RegExpMatchArray).length;
+			chrome.tabs.update(tabs[(tabs.length - 1) + ((tab.index - (tabs.length - 1) - shift) % tabs.length)].id as number, {
+				highlighted: true,
+				active: false,
+			});
+			chrome.tabs.update(tabSelected.id as number, { highlighted: false });
+		}
+	}
 };
 
 commandEntered("t");
@@ -34,6 +43,10 @@ addEventListener("keydown", event => {
 		return;
 	}
 	event.preventDefault();
+	if (event.key === "Enter") {
+		commandEntered(command, true);
+		return;
+	}
 	if (event.key === "Backspace" || event.key === "Delete") {
 		commandEntered("");
 		return;
@@ -51,23 +64,25 @@ addEventListener("keyup", event => {
 });
 
 addEventListener("blur", () => {
-	close();
+	//close();
 });
 
 const popupInsert = (container: HTMLElement) => {
 	const style = document.createElement("style");
 	style.textContent = `
-	body {
-		background: black;
-		border-color: black;
-		color: hsl(120 100% 50%);
-		font-size: 24px;
-		font-family: monospace;
-		width: 100px;
-		height: 20px;
-		display: flex;
-		align-items: center;
-	}
+body {
+	background: black;
+	border-color: black;
+	color: hsl(120 100% 50%);
+	font-size: 24px;
+	font-family: monospace;
+	width: 116px;
+	height: 20px;
+	display: flex;
+	align-items: center;
+	user-select: none;
+	overflow: clip;
+}
 	`;
 	document.head.appendChild(style);
 	input = container.appendChild(document.createElement("span"));
