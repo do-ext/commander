@@ -1,0 +1,60 @@
+{
+	"manifest_version": 3,
+	"name": "Navigator",
+	"description": "Navigate quickly with configurable commands",
+	"version": "0.0.0",
+
+	"browser_specific_settings": { "gecko": { "id": "navigator@ator-dev" } },
+
+	"icons": {
+		"48": "/icons/navigator.svg",
+		"96": "/icons/navigator.svg"
+	},
+
+	"permissions": [
+		"scripting",
+		"tabs",
+		"storage",
+		"search",
+		"contextMenus"
+	],
+
+	"optional_permissions": [],
+
+	"host_permissions": [
+		"*://*/*"
+	],
+
+	"background": {
+		"scripts": [
+			"/dist/background.js"
+		]
+	},
+
+	"options_ui": {
+		"page": "/pages/options.html",
+		"browser_style": false
+	},
+
+	"action": {
+		"default_icon": "/icons/navigator.svg",
+		"default_title": "Navigator",
+		"default_popup": "/pages/popup.html"
+	},
+
+	"web_accessible_resources": [
+		{
+			"resources": [
+				"/icons/navigator.svg"
+			],
+			"matches": [ "*://*/*" ]
+		}
+	],
+
+	"commands": {
+		"open-popup": {
+			"suggested_key": { "default": "Ctrl+Space" },
+			"description": "Open the global command input"
+		}
+	}
+}
