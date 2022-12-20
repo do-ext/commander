@@ -18,14 +18,20 @@ addEventListener("keydown", event => {
 
 onkeydown = null;
 
-let command = window["commandTemp"] ?? "";
+let command = window["command"] ?? "";
 let input: HTMLElement | null = null;
 
 // TODO do not rely on storage being present
 let operations: Array<Operation> = [];
-chrome.storage.local.get("operations").then(storage => {
+const promise = chrome.storage.local.get("operations").then(storage => {
 	operations = storage["operations"];
-	operations.filter(operation => operation.operator === "begin").forEach(operation => {
+});
+
+let popupClass = "";
+chrome.storage.local.get("popupClass").then(async storage => {
+	popupClass = storage["popupClass"];
+	await promise;
+	operations.filter(operation => operation.operator === "begin" && operation.operands[0].label === popupClass).forEach(operation => {
 		// TODO only use the appropriate prefix operation (corresponding to the shortcut used to open the popup)
 		commandEntered(operation.operands[1].label + command);
 	});
