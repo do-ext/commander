@@ -16,14 +16,16 @@ addEventListener("keydown", event => {
 	}
 });
 
-let command = "";
+onkeydown = null;
+
+let command = window["commandTemp"] ?? "";
 let input: HTMLElement | null = null;
 
 // TODO do not rely on storage being present
 let operations: Array<Operation> = [];
 chrome.storage.local.get("operations").then(storage => {
 	operations = storage["operations"];
-	operations.filter(operation => operation.operator === "prefix").forEach(operation => {
+	operations.filter(operation => operation.operator === "begin").forEach(operation => {
 		// TODO only use the appropriate prefix operation (corresponding to the shortcut used to open the popup)
 		commandEntered(operation.operands[1].label + command);
 	});
@@ -59,6 +61,10 @@ const evaluateExpression = (expressionString: string): number => {
 };
 
 const commandEntered = async (commandNew: string, submit = false) => {
+	if (submit) {
+		const operation = operations.filter(({ operator, operands }) => operator === "complete" && (new RegExp(`\\b${operands[0].label}\\b`, "g")).test(commandNew))[0];
+		commandNew += operation.operands[1].label;
+	}
 	command = commandNew;
 	if (input) {
 		input.textContent = command;
