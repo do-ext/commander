@@ -1,6 +1,6 @@
 {
-	"name": "navigator",
-	"displayName": "Navigator",
+	"name": "doext-commander",
+	"displayName": "doExt Commander",
 	"scripts": {
 		"compile": "tsc -p ./tsconfig.json",
 		"build-firefox": "ln -fs manifest-firefox.json manifest.json && zip mark_my_search-firefox.zip * -ri dist/**\\* icons/**\\* pages/**\\* lib/email.min.js manifest.json .web-extension-id",
@@ -8,7 +8,7 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/ator-dev/navigator.git"
+		"url": "git+https://github.com/do-ext/commander.git"
 	},
 	"author": {
 		"name": "ator-dev",
@@ -17,9 +17,9 @@
 	},
 	"license": "MIT",
 	"bugs": {
-		"url": "https://github.com/ator-dev/navigator/issues"
+		"url": "https://github.com/do-ext/commander/issues"
 	},
-	"homepage": "https://github.com/ator-dev/navigator#readme",
+	"homepage": "https://github.com/do-ext/commander#readme",
 	"devDependencies": {
 		"@types/chrome": "^0.0.204",
 		"@types/firefox-webext-browser": "^94.0.1",
