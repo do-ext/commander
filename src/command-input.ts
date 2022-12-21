@@ -23,14 +23,14 @@ let input: HTMLElement | null = null;
 
 // TODO do not rely on storage being present
 let operations: Array<Operation> = [];
-const promise = chrome.storage.local.get("operations").then(storage => {
+const operationsRetrieval = chrome.storage.local.get("operations").then(storage => {
 	operations = storage["operations"];
 });
 
 let popupClass = "";
 chrome.storage.local.get("popupClass").then(async storage => {
 	popupClass = storage["popupClass"];
-	await promise;
+	await operationsRetrieval;
 	operations.filter(operation => operation.operator === "begin" && operation.operands[0].label === popupClass).forEach(operation => {
 		// TODO only use the appropriate prefix operation (corresponding to the shortcut used to open the popup)
 		commandEntered(operation.operands[1].label + command);
@@ -66,6 +66,14 @@ const evaluateExpression = (expressionString: string): number => {
 	return result;
 };
 
+const getTabIndex = (index: number, shift: number, tabCount: number) =>
+	shift >= 0
+		? (index + shift) % tabCount
+		: (tabCount - 1) + ((index - (tabCount - 1) + shift) % tabCount)
+;
+
+let tabInGroupId = -1;
+
 const commandEntered = async (commandNew: string, submit = false) => {
 	if (submit) {
 		const operation = operations.filter(({ operator, operands }) => operator === "complete" && (new RegExp(`\\b${operands[0].label}\\b`, "g")).test(commandNew))[0];
@@ -81,32 +89,41 @@ const commandEntered = async (commandNew: string, submit = false) => {
 		switch (action.label) {
 		case "tabs.highlight.shift": {
 			const tabs = await getTabsInWindow();
-			const tab = tabs.find(tab => tab.active) as chrome.tabs.Tab;
 			const tabSelected = tabs.find(tab => !tab.active && tab.highlighted);
-			const shift = evaluateExpression(action.arguments[0]);
-			const tabIndex = shift >= 0
-				? (tab.index + shift) % tabs.length
-				: (tabs.length - 1) + ((tab.index - (tabs.length - 1) + shift) % tabs.length);
-			chrome.tabs.update(tabs[tabIndex].id as number, {
-				highlighted: true,
-				active: false,
-			});
-			if (tabSelected) {
-				chrome.tabs.update(tabSelected.id as number, { highlighted: false });
+			const tabActiveIndex = tabs.findIndex(tab => tab.active);
+			const tabIndex = getTabIndex(tabActiveIndex, evaluateExpression(action.arguments[0]), tabs.length);
+			if (this.browser) {
+				chrome.tabs.update(tabs[tabIndex].id as number, { highlighted: true, active: false });
+				if (tabSelected) {
+					chrome.tabs.update(tabSelected.id as number, { highlighted: false });
+				}
+			} else {
+				tabInGroupId = tabs[tabIndex].id as number;
+				chrome.tabGroups.query({ title: "doExt" }).then(groups => {
+					groups.forEach(async ({ id: groupId }) => {
+						chrome.tabs.ungroup((await chrome.tabs.query({ groupId })).map(tab => tab.id as number));
+					});
+				});
+				chrome.tabs.group({ tabIds: tabInGroupId }).then(async value => {
+					chrome.tabGroups.update(value, {
+						title: "doExt",
+						color: "blue",
+					});
+				});
 			}
 			break;
 		} case "tabs.activate.shift": {
 			const tabs = await getTabsInWindow();
-			const tab = tabs.find(tab => tab.active) as chrome.tabs.Tab;
-			const shift = evaluateExpression(action.arguments[0]);
-			const tabIndex = shift >= 0
-				? (tab.index + shift) % tabs.length
-				: (tabs.length - 1) + ((tab.index - (tabs.length - 1) + shift) % tabs.length);
+			const tabIndex = getTabIndex(tabs.findIndex(tab => tab.active), evaluateExpression(action.arguments[0]), tabs.length);
 			chrome.tabs.update(tabs[tabIndex].id as number, { active: true });
 			break;
 		} case "tabs.activate.highlighted": {
-			const tab = (await chrome.tabs.query({ highlighted: true, active: false }))[0];
+			const groupId = (await chrome.tabGroups.query({ title: "doExt" }))[0].id;
+			const tab = (await chrome.tabs.query(this.browser ? { highlighted: true, active: false } : { groupId }))[0];
 			chrome.tabs.update(tab.id as number, { active: true });
+			if (!this.browser) {
+				chrome.tabs.ungroup(tab.id as number);
+			}
 			break;
 		} case "meta.popup.close": {
 			close();
@@ -131,7 +148,7 @@ addEventListener("keyup", event => {
 });
 
 addEventListener("blur", () => {
-	close();
+	//close();
 });
 
 const popupInsert = (container: HTMLElement) => {
