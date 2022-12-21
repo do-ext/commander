@@ -4,8 +4,6 @@
 	"description": "Navigate quickly with configurable commands",
 	"version": "0.0.0",
 
-	"browser_specific_settings": { "gecko": { "id": "navigator@ator-dev" } },
-
 	"icons": {
 		"48": "/icons/navigator.svg",
 		"96": "/icons/navigator.svg"
@@ -14,6 +12,7 @@
 	"permissions": [
 		"scripting",
 		"tabs",
+		"tabGroups",
 		"storage",
 		"search",
 		"contextMenus"
