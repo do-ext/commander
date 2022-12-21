@@ -1,14 +1,14 @@
 {
 	"manifest_version": 3,
-	"name": "Navigator",
-	"description": "Navigate quickly with configurable commands",
+	"name": "doExt Commander",
+	"description": "Manage anything with custom commands",
 	"version": "0.0.0",
 
-	"browser_specific_settings": { "gecko": { "id": "navigator@ator-dev" } },
+	"browser_specific_settings": { "gecko": { "id": "commander@ator-dev" } },
 
 	"icons": {
-		"48": "/icons/navigator.svg",
-		"96": "/icons/navigator.svg"
+		"48": "/icons/commander.svg",
+		"96": "/icons/commander.svg"
 	},
 
 	"permissions": [
@@ -32,20 +32,19 @@
 	},
 
 	"options_ui": {
-		"page": "/pages/options.html",
-		"browser_style": false
+		"page": "/pages/options.html"
 	},
 
 	"action": {
-		"default_icon": "/icons/navigator.svg",
-		"default_title": "Navigator",
+		"default_icon": "/icons/commander.svg",
+		"default_title": "doExt Commander",
 		"default_popup": "/pages/popup.html"
 	},
 
 	"web_accessible_resources": [
 		{
 			"resources": [
-				"/icons/navigator.svg"
+				"/icons/commander.svg"
 			],
 			"matches": [ "*://*/*" ]
 		}

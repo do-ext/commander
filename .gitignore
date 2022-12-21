@@ -3,6 +3,6 @@
 /node_modules
 /web-ext-artifacts
 /.web-extension-id
-/navigator-*.zip
+/commander-*.zip
 /.pnpm-debug.log
 /manifest.json
