@@ -16,9 +16,7 @@ addEventListener("keydown", event => {
 	}
 });
 
-onkeydown = null;
-
-let command = window["command"] ?? "";
+let command = "";
 let input: HTMLElement | null = null;
 
 // TODO do not rely on storage being present
